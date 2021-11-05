@@ -8,13 +8,6 @@
 #import "RSErrorResponse.h"
 #import "RSFileResponse.h"
 #import "RSStreamedResponse.h"
-#import "DICMTypes.h"
-#import "NSString+PCS.h"
-#import "NSData+PCS.h"
-#import "NSURLSessionDataTask+PCS.h"
-#import "NSMutableURLRequest+PCS.h"
-#import "NSMutableString+DSCD.h"
-#import "NSUUID+DICM.h"
 
 
 static NSRegularExpression *UIRegex=nil;
@@ -54,13 +47,8 @@ int task(NSString *launchPath, NSArray *launchArgs, NSMutableData *readData)
     {
         [readData appendData:dataPiped];
     }
-    //while( [task isRunning]) [NSThread sleepForTimeInterval: 0.1];
-    //[task waitUntilExit];		// <- This is VERY DANGEROUS : the main runloop is continuing...
-    //[aTask interrupt];
     [task waitUntilExit];
-    int terminationStatus = [task terminationStatus];
-    if (terminationStatus!=0) printfLog(@"ERROR task terminationStatus: %d",terminationStatus);
-    return terminationStatus;
+    return [task terminationStatus];
 }
 
 
@@ -140,45 +128,51 @@ int main(int argc, const char* argv[]) {
 
 #pragma mark · contentType
    NSArray *contentTypeBoundary=[request.contentType componentsSeparatedByString:@"boundary="];
-   if (contentTypeBoundary.count !=2)
-      return [RSErrorResponse responseWithClientError:404 message:@"Content-Type <pre>%@</pre> should contain one boundary=",request.contentType];
-
    
+   NSString *contentType=[[[contentTypeBoundary[0]
+    stringByReplacingOccurrencesOfString:@"\"" withString:@""]
+    stringByReplacingOccurrencesOfString:@"'" withString:@""]
+    stringByReplacingOccurrencesOfString:@" " withString:@""];
+   printfLog(@"#%i  Content-Type: %@",request.socket, contentType);
+
    NSString *boundary=nil;
-   NSArray *simpleQuoteAroundBoundary=[contentTypeBoundary[1] componentsSeparatedByString:@"'"];
-   switch (simpleQuoteAroundBoundary.count) {
-      case 3:
-         boundary=simpleQuoteAroundBoundary[1];
-         break;
-      case 1: //no simpleQuote
-         break;
-
-      default: //not authorized
-         return [RSErrorResponse responseWithClientError:404 message:@"bad Content-Type boundary <pre>%@</pre>",request.contentType];
-   }
-   NSArray *doubleQuoteAroundBoundary=[contentTypeBoundary[1] componentsSeparatedByString:@"\""];
-   switch (doubleQuoteAroundBoundary.count) {
-      case 3:
-         boundary=doubleQuoteAroundBoundary[1];
-         break;
-      case 1: //no doubleQuote
-         break;
-
-      default: //not authorized
-         return [RSErrorResponse responseWithClientError:404 message:@"bad Content-Type boundary <pre>%@</pre>",request.contentType];
-   }
-   if (!boundary)
+   NSData *boundaryData=nil;
+   if (contentTypeBoundary.count ==2)
    {
-      boundary=[contentTypeBoundary[1] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
-      if ([[boundary componentsSeparatedByString:@" "]count]>1)
-         return [RSErrorResponse responseWithClientError:404 message:@"bad Content-Type boundary <pre>%@</pre>",request.contentType];
+      NSArray *simpleQuoteAroundBoundary=[contentTypeBoundary[1] componentsSeparatedByString:@"'"];
+      switch (simpleQuoteAroundBoundary.count) {
+         case 3:
+            boundary=simpleQuoteAroundBoundary[1];
+            break;
+         case 1: //no simpleQuote
+            break;
+
+         default: //not authorized
+            return [RSErrorResponse responseWithClientError:404 message:@"bad Content-Type boundary <pre>%@</pre>",request.contentType];
+      }
+      NSArray *doubleQuoteAroundBoundary=[contentTypeBoundary[1] componentsSeparatedByString:@"\""];
+      switch (doubleQuoteAroundBoundary.count) {
+         case 3:
+            boundary=doubleQuoteAroundBoundary[1];
+            break;
+         case 1: //no doubleQuote
+            break;
+
+         default: //not authorized
+            return [RSErrorResponse responseWithClientError:404 message:@"bad Content-Type boundary <pre>%@</pre>",request.contentType];
+      }
+      if (!boundary)
+      {
+         boundary=[contentTypeBoundary[1] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
+         if ([[boundary componentsSeparatedByString:@" "]count]>1)
+            return [RSErrorResponse responseWithClientError:404 message:@"bad Content-Type boundary <pre>%@</pre>",request.contentType];
+      }
+      boundaryData=[[NSString stringWithFormat:@"\r\n--%@",boundary] dataUsingEncoding:NSISOLatin1StringEncoding];
    }
-   NSData *boundaryData=[[NSString stringWithFormat:@"\r\n--%@--\r\n",boundary] dataUsingEncoding:NSISOLatin1StringEncoding];
-   NSString *boundaryString=[[NSString alloc]initWithData:boundaryData encoding:NSISOLatin1StringEncoding];
    
    
    
-   NSString *contentType=[contentTypeBoundary[0] stringByReplacingOccurrencesOfString:@" " withString:@""];
+   
    NSUInteger contentTypeIndex = [
                                   @[
                                      @"multipart/related;type=application/dicom;",
@@ -194,20 +188,23 @@ int main(int argc, const char* argv[]) {
 
       case 0:
       {
-#pragma mark - application/dicom
+#pragma mark ·· application/dicom
          
          /*
           cada parte está delimitada por :
           - principio: preámbulo de 128 ceros y letras DICM
           - fin: boundary del item siguiente o último boundary
           */
-         
+
+         if (!boundaryData)
+            return [RSErrorResponse responseWithClientError:404 message:@"Content-Type <pre>%@</pre> should contain one boundary=",request.contentType];
+
          //extract dicom from body
          unsigned long bodyLength=request.data.length;
          unsigned long bodyOffsetMax=bodyLength-1000;
-         printfLog(@"body size: %lu",request.data.length);
          int counter=0;
-         NSString *dirPath=[[args[2] stringByAppendingPathComponent:boundaryString] stringByAppendingPathComponent:[ISO8601 stringFromDate:[NSDate date]]];
+         NSString *dirPath=[[args[2] stringByAppendingPathComponent:boundary] stringByAppendingPathComponent:[ISO8601 stringFromDate:[NSDate date]]];
+         printfLog(@"#%i  dirPath:%@",request.socket, dirPath);
          NSError *error;
          NSRange DICMRange=NSMakeRange(0,0);
          NSRange boundaryRange=NSMakeRange(0,0);
@@ -216,21 +213,25 @@ int main(int argc, const char* argv[]) {
          while (bodyRange.location < bodyOffsetMax)
          {
             //find next DICM
-            DICMRange=[request.data rangeOfData:DICMdata options:0 range:bodyRange];
-            if (DICMRange.location==NSNotFound)
-            {
-               if (counter==0) return [RSResponse responseWithStatusCode:kRSHTTPStatusCode_NoContent];
+             DICMRange=[request.data rangeOfData:DICMdata options:0 range:bodyRange];
+            
+             if (DICMRange.location==NSNotFound)
+             {
+                if (counter==0) return [RSResponse responseWithStatusCode:kRSHTTPStatusCode_NoContent];
+                bodyRange.location=bodyLength;
+             }
+             else
+             {
+               if (counter==0)
+               {
+                  [fileManager createDirectoryAtPath:dirPath withIntermediateDirectories:YES attributes:nil error:&error];
+                  if (error) return [RSErrorResponse responseWithServerError:kRSHTTPStatusCode_InsufficientStorage message:@"intermediate storage not available"];
+               }
                counter++;
-               [fileManager createDirectoryAtPath:dirPath withIntermediateDirectories:YES attributes:nil error:&error];
-               if (error) return [RSErrorResponse responseWithServerError:kRSHTTPStatusCode_InsufficientStorage message:@"intermediate storage not available"];
-
-               bodyRange.location=bodyLength;
-            }
-            else
-            {
-               //new bodyRange
-               bodyRange.location=DICMRange.location + DICMRange.location;
-               bodyRange.length=bodyLength - DICMRange.location - DICMRange.location;
+ 
+                //new bodyRange
+               bodyRange.location=DICMRange.location + DICMRange.length;
+               bodyRange.length=bodyLength - bodyRange.location;
             
                //find next boundary
                boundaryRange=[request.data rangeOfData:boundaryData options:0 range:bodyRange];
@@ -238,31 +239,52 @@ int main(int argc, const char* argv[]) {
                   return [RSResponse responseWithStatusCode:kRSHTTPStatusCode_BadRequest];
                
                //new bodyRange
-               bodyRange.location=boundaryRange.location + boundaryRange.location;
-               bodyRange.length=bodyLength - boundaryRange.location - boundaryRange.location;
+               bodyRange.location=boundaryRange.location + boundaryRange.length;
+               bodyRange.length=bodyLength - bodyRange.location;
 
                //save dicom file
-               NSRange fileRange=NSMakeRange(DICMRange.location,boundaryRange.location - DICMRange.location);
+               NSRange fileRange=NSMakeRange(DICMRange.location, boundaryRange.location - DICMRange.location);
                NSString *filePath=[dirPath stringByAppendingFormat:@"/%i.dcm",counter];
                [[request.data subdataWithRange:fileRange]writeToFile:filePath atomically:NO];
             }
          }
          //send contents of dirPath
          NSMutableData *readData=[NSMutableData data];
+         /*
+          /usr/local/bin/storescu +sd +sp *.dcm +rn -xv -aet STORESCU -aec DCM4CHEE localhost 11112 /Users/Shared/myboundary
+          
+          @"+sd",   //scan directory one level
+          @"+sp",   //scan pattern
+          @"*.dcm", //files ending with .dcm
+          @"+rn",   //rename with .done or .bad (ignore these files on the next execution)
+          @"-xv",   //prefer jpeg 2000
+          @"-aet",  //local aet
+          aet,      //=first segment of path
+          @"-aec",  //aet of called pacs
+          aec,      //=second segment of path
+          args[3],  //=host of pacs
+          args[4],  //=port of pacs
+          dirPath   //directory to scan
+          */
+         
          int taskReturnInt=task(@"/usr/local/bin/storescu",
                                 @[
                                    @"+sd",
-                                   @"aet",
-                                   aet,
-                                   @"aec",
-                                   aec,
+                                   @"+sp",
+                                   @"*.dcm",
+                                   @"+rn",
                                    @"-xv",
+                                   @"-aet",
+                                   aet,
+                                   @"-aec",
+                                   aec,
+                                   args[3],
                                    args[4],
-                                   args[5],
                                    dirPath
                                 ],
                                 readData
                                 );
+         printfLog(@"#%i  task taskReturnInt: %i",request.socket, taskReturnInt);
          
          return [RSDataResponse responseWithData:readData contentType:@"text/plain"];
       }
@@ -270,7 +292,11 @@ int main(int argc, const char* argv[]) {
 
       case 1:
       {
-#pragma mark - application/dicom+xml
+#pragma mark ·· application/dicom+xml
+
+         if (!boundaryData)
+            return [RSErrorResponse responseWithClientError:404 message:@"Content-Type <pre>%@</pre> should contain one boundary=",request.contentType];
+
       }
          break;
 

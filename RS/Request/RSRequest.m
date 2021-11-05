@@ -300,10 +300,12 @@ NSDictionary* GCDWebServerParseURLEncodedForm(NSString* form) {
     
     NSString* charset = [self.contentType valueForName:@"charset"];
     
-    NSString* string = [[NSString alloc] initWithData:self.data encoding:GCDWebServerStringEncodingFromCharset(charset)];
+    if (charset)
+    {
+       NSString* string = [[NSString alloc] initWithData:self.data encoding:GCDWebServerStringEncodingFromCharset(charset)];
     
-    _arguments = GCDWebServerParseURLEncodedForm(string);
-
+       _arguments = GCDWebServerParseURLEncodedForm(string);
+    }
     return YES;
 }
 

@@ -142,6 +142,8 @@
 		4ABF11FF1FE89412000B8DE6 /* Const.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Const.h; sourceTree = "<group>"; };
 		4ABF12001FE89412000B8DE6 /* Const.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Const.m; sourceTree = "<group>"; };
 		4ABF12011FE89412000B8DE6 /* iconv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iconv.h; sourceTree = "<group>"; };
+		4ACE82212735C52500C17614 /* dicom.mime */ = {isa = PBXFileReference; lastKnownFileType = file; path = dicom.mime; sourceTree = "<group>"; };
+		4ACE82222735C55000C17614 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		4AE031AF2733088400630966 /* printfLog.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = printfLog.m; sourceTree = "<group>"; };
 		4AE031B32733092300630966 /* printfLog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = printfLog.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -161,6 +163,7 @@
 		2A31F5D91C87295A00A78C7C = {
 			isa = PBXGroup;
 			children = (
+				4ACE821F2735C4C000C17614 /* test */,
 				4AE031B32733092300630966 /* printfLog.h */,
 				4AE031AF2733088400630966 /* printfLog.m */,
 				4A0FDF1F1E904E5C001E3426 /* main.m */,
@@ -297,6 +300,31 @@
 				4ABF11D91FE5C11C000B8DE6 /* NSURLSessionDataTask+PCS.m */,
 			);
 			path = PCS;
+			sourceTree = "<group>";
+		};
+		4ACE821F2735C4C000C17614 /* test */ = {
+			isa = PBXGroup;
+			children = (
+				4ACE82232735C89A00C17614 /* case2 */,
+				4ACE82202735C4D000C17614 /* case1 */,
+			);
+			path = test;
+			sourceTree = "<group>";
+		};
+		4ACE82202735C4D000C17614 /* case1 */ = {
+			isa = PBXGroup;
+			children = (
+				4ACE82212735C52500C17614 /* dicom.mime */,
+				4ACE82222735C55000C17614 /* README.md */,
+			);
+			path = case1;
+			sourceTree = "<group>";
+		};
+		4ACE82232735C89A00C17614 /* case2 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = case2;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

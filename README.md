@@ -80,13 +80,29 @@ el o los recursos enviados en el  body del POST
 
 
 
+## Response
+
+En la primera iteración devolverá exclusivamente un status
+
+| code                      | descripción                                                  |
+| ------------------------- | ------------------------------------------------------------ |
+| 200(OK)                   | The origin server successfully stored all Instances.         |
+| 202(Accepted)             | The origin server stored some of the Instances but warnings or failures exist for others. Additional information regarding this error may be found in the response message body. |
+| 204(NoContent)            | There were no adequate resources in the body                 |
+| 206(PartialContent)       | Some of the resources have been sent but not all             |
+| 400(BadRequest)           | The origin server was unable to store any instances due to bad syntax. |
+| 409(Conflict)             | The request was formed correctly but the origin server was unable to store any instances due to a conflict in the request (e.g., unsupported SOP Class or Study Instance UID mismatch). This may also be used to indicate that the origin server was unable to store any instances for a mixture of reasons. |
+| 415(UnsupportedMediaType) | The origin server does not support the media type specified in the Content-Type header field of the request |
+
+
+
 # Casos de uso
 
 Inicialmente implementamos los casos "dicom" multiples archivos  y "dicom+xml" dicom metadata y xml encapsulado de un  solo archivo.
 
 En otras iteraciones, implementaremos application/dicom+json, y los media-types propietarios application/dicom+dckv y application/dicom+edckv
 
-## dicom 
+## caso 1: multiples dicom 
 
 archivos dicom binario
 
@@ -112,7 +128,7 @@ tail
 
 
 
-## dicom+xml
+## caso 2: one dicom+xml and encapsulated xml
 
 metadata DICOM en xml <NativeDicomModel>
 
@@ -149,26 +165,6 @@ tail
 ```
 \r\n--myBoundary--\r\n
 ```
-
-
-
-## Response
-
-En la primera iteración devolverá exclusivamente un status
-
-| code                      | descripción                                                  |
-| ------------------------- | ------------------------------------------------------------ |
-| 200(OK)                   | The origin server successfully stored all Instances.         |
-| 202(Accepted)             | The origin server stored some of the Instances but warnings or failures exist for others. Additional information regarding this error may be found in the response message body. |
-| 204(NoContent)            | There were no adequate resources in the body                 |
-| 206(PartialContent)       | Some of the resources have been sent but not all             |
-| 400(BadRequest)           | The origin server was unable to store any instances due to bad syntax. |
-| 409(Conflict)             | The request was formed correctly but the origin server was unable to store any instances due to a conflict in the request (e.g., unsupported SOP Class or Study Instance UID mismatch). This may also be used to indicate that the origin server was unable to store any instances for a mixture of reasons. |
-| 415(UnsupportedMediaType) | The origin server does not support the media type specified in the Content-Type header field of the request |
-
-
-
-
 
 # Ejemplo python de cliente dicom+xml
 
