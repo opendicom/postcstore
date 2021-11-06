@@ -1,56 +1,11 @@
 #import <Foundation/Foundation.h>
 #import "printfLog.h"
 
-#import "NSURLComponents+PCS.h"
-
 #import "RS.h"
 #import "RSDataResponse.h"
 #import "RSErrorResponse.h"
-#import "RSFileResponse.h"
-#import "RSStreamedResponse.h"
-
-
-static NSRegularExpression *UIRegex=nil;
-static NSRegularExpression *SHRegex=nil;
-static NSRegularExpression *DARegex=nil;
-static NSRegularExpression *CSRegex=nil;
-static NSArray *qidoLastPathComponent=nil;
-static NSData *pdfContentType;
-
-//static immutable find within NSData
-static NSData *rn;
-static NSData *rnrn;
-static NSData *rnhh;
-static NSData *contentType;
-static NSData *CDAOpeningTag;
-static NSData *CDAClosingTag;
-static NSData *ctad;
-static NSData *emptyJsonArray;
-
-
-
-int task(NSString *launchPath, NSArray *launchArgs, NSMutableData *readData)
-{
-    NSTask *task=[[NSTask alloc]init];
-    [task setLaunchPath:launchPath];
-    [task setArguments:launchArgs];
-    //LOG_INFO(@"%@",[task arguments]);
-    
-    NSPipe* readPipe = [NSPipe pipe];
-    NSFileHandle *readingFileHandle=[readPipe fileHandleForReading];
-    [task setStandardOutput:readPipe];
-    [task setStandardError:readPipe];
-    
-    NSData *dataPiped = nil;
-    [task launch];
-    while((dataPiped = [readingFileHandle availableData]) && [dataPiped length])
-    {
-        [readData appendData:dataPiped];
-    }
-    [task waitUntilExit];
-    return [task terminationStatus];
-}
-
+//#import "RSFileResponse.h"
+//#import "RSStreamedResponse.h"
 
 
 int main(int argc, const char* argv[]) {
@@ -169,23 +124,38 @@ int main(int argc, const char* argv[]) {
       }
       boundaryData=[[NSString stringWithFormat:@"\r\n--%@",boundary] dataUsingEncoding:NSISOLatin1StringEncoding];
    }
+
    
+#pragma mark · generic parsing variables
    
+   if (!boundaryData)
+      return [RSErrorResponse responseWithClientError:404 message:@"Content-Type <pre>%@</pre> should contain one boundary=",request.contentType];
+
+   //extract dicom from body
+   unsigned long bodyLength=request.data.length;
+   unsigned long bodyOffsetMax=bodyLength-1000;
+   int counter=0;
+   NSString *dirPath=[[args[2] stringByAppendingPathComponent:boundary] stringByAppendingPathComponent:[ISO8601 stringFromDate:[NSDate date]]];
+   printfLog(@"#%i  dirPath:%@",request.socket, dirPath);
+   NSError *error;
+   NSRange boundaryRange=NSMakeRange(0,0);
+
+   NSRange bodyRange=NSMakeRange(0,bodyLength);
+
    
+#pragma mark · cases implemented
    
-   NSUInteger contentTypeIndex = [
-                                  @[
-                                     @"multipart/related;type=application/dicom;",
-                                     @"multipart/related;type=application/dicom+xml;"
-                                  ]
-                                  indexOfObject:contentType
-                                  ];
-   
-   
-   switch (contentTypeIndex) {
+   switch ([
+            @[
+               @"multipart/related;type=application/dicom;",
+               @"multipart/related;type=application/dicom+xml;"
+            ]
+            indexOfObject:contentType
+            ]) {
       case NSNotFound:
          return [RSErrorResponse responseWithClientError:404 message:@"content-type: %@ not accepted",contentType];
 
+         
       case 0:
       {
 #pragma mark ·· application/dicom
@@ -195,21 +165,8 @@ int main(int argc, const char* argv[]) {
           - principio: preámbulo de 128 ceros y letras DICM
           - fin: boundary del item siguiente o último boundary
           */
-
-         if (!boundaryData)
-            return [RSErrorResponse responseWithClientError:404 message:@"Content-Type <pre>%@</pre> should contain one boundary=",request.contentType];
-
-         //extract dicom from body
-         unsigned long bodyLength=request.data.length;
-         unsigned long bodyOffsetMax=bodyLength-1000;
-         int counter=0;
-         NSString *dirPath=[[args[2] stringByAppendingPathComponent:boundary] stringByAppendingPathComponent:[ISO8601 stringFromDate:[NSDate date]]];
-         printfLog(@"#%i  dirPath:%@",request.socket, dirPath);
-         NSError *error;
          NSRange DICMRange=NSMakeRange(0,0);
-         NSRange boundaryRange=NSMakeRange(0,0);
 
-         NSRange bodyRange=NSMakeRange(0,bodyLength);
          while (bodyRange.location < bodyOffsetMax)
          {
             //find next DICM
@@ -248,45 +205,6 @@ int main(int argc, const char* argv[]) {
                [[request.data subdataWithRange:fileRange]writeToFile:filePath atomically:NO];
             }
          }
-         //send contents of dirPath
-         NSMutableData *readData=[NSMutableData data];
-         /*
-          /usr/local/bin/storescu +sd +sp *.dcm +rn -xv -aet STORESCU -aec DCM4CHEE localhost 11112 /Users/Shared/myboundary
-          
-          @"+sd",   //scan directory one level
-          @"+sp",   //scan pattern
-          @"*.dcm", //files ending with .dcm
-          @"+rn",   //rename with .done or .bad (ignore these files on the next execution)
-          @"-xv",   //prefer jpeg 2000
-          @"-aet",  //local aet
-          aet,      //=first segment of path
-          @"-aec",  //aet of called pacs
-          aec,      //=second segment of path
-          args[3],  //=host of pacs
-          args[4],  //=port of pacs
-          dirPath   //directory to scan
-          */
-         
-         int taskReturnInt=task(@"/usr/local/bin/storescu",
-                                @[
-                                   @"+sd",
-                                   @"+sp",
-                                   @"*.dcm",
-                                   @"+rn",
-                                   @"-xv",
-                                   @"-aet",
-                                   aet,
-                                   @"-aec",
-                                   aec,
-                                   args[3],
-                                   args[4],
-                                   dirPath
-                                ],
-                                readData
-                                );
-         printfLog(@"#%i  task taskReturnInt: %i",request.socket, taskReturnInt);
-         
-         return [RSDataResponse responseWithData:readData contentType:@"text/plain"];
       }
          break;
 
@@ -294,14 +212,117 @@ int main(int argc, const char* argv[]) {
       {
 #pragma mark ·· application/dicom+xml
 
-         if (!boundaryData)
-            return [RSErrorResponse responseWithClientError:404 message:@"Content-Type <pre>%@</pre> should contain one boundary=",request.contentType];
+         /*
+          cada parte está delimitada por :
+          - principio: preámbulo de un documento xml
+          - fin: boundary del item siguiente o último boundary
+          */
+         NSRange DICMRange=NSMakeRange(0,0);
+
+         while (bodyRange.location < bodyOffsetMax)
+         {
+            //find next DICM
+             DICMRange=[request.data rangeOfData:DICMdata options:0 range:bodyRange];
+            
+             if (DICMRange.location==NSNotFound)
+             {
+                if (counter==0) return [RSResponse responseWithStatusCode:kRSHTTPStatusCode_NoContent];
+                bodyRange.location=bodyLength;
+             }
+             else
+             {
+               if (counter==0)
+               {
+                  [fileManager createDirectoryAtPath:dirPath withIntermediateDirectories:YES attributes:nil error:&error];
+                  if (error) return [RSErrorResponse responseWithServerError:kRSHTTPStatusCode_InsufficientStorage message:@"intermediate storage not available"];
+               }
+               counter++;
+ 
+                //new bodyRange
+               bodyRange.location=DICMRange.location + DICMRange.length;
+               bodyRange.length=bodyLength - bodyRange.location;
+            
+               //find next boundary
+               boundaryRange=[request.data rangeOfData:boundaryData options:0 range:bodyRange];
+               if (boundaryRange.location==NSNotFound)
+                  return [RSResponse responseWithStatusCode:kRSHTTPStatusCode_BadRequest];
+               
+               //new bodyRange
+               bodyRange.location=boundaryRange.location + boundaryRange.length;
+               bodyRange.length=bodyLength - bodyRange.location;
+
+               //save dicom file
+               NSRange fileRange=NSMakeRange(DICMRange.location, boundaryRange.location - DICMRange.location);
+               NSString *filePath=[dirPath stringByAppendingFormat:@"/%i.dcm",counter];
+               [[request.data subdataWithRange:fileRange]writeToFile:filePath atomically:NO];
+            }
+         }
 
       }
          break;
+         
+      default:
+         return [RSErrorResponse responseWithServerError:404 message:@"multiple application/dicom or single application/dicom+xml with encapsulated cda are the only cases accepted yet"];
 
    }
-   return [RSErrorResponse responseWithServerError:404 message:@"should contain return before in the method"];
+
+#pragma mark · send dirPath's contents
+   
+   //https://support.dcmtk.org/docs/storescu.html
+   /*
+    /usr/local/bin/storescu +sd +sp *.dcm +rn -xv -aet STORESCU -aec DCM4CHEE localhost 11112 /Users/Shared/myboundary
+    
+    @"+sd",   //scan directory one level
+    @"+sp",   //scan pattern
+    @"*.dcm", //files ending with .dcm
+    @"+rn",   //rename with .done or .bad (ignore these files on the next execution)
+    @"-xv",   //prefer jpeg 2000
+    @"-aet",  //local aet
+    aet,      //=first segment of path
+    @"-aec",  //aet of called pacs
+    aec,      //=second segment of path
+    args[3],  //=host of pacs
+    args[4],  //=port of pacs
+    dirPath   //directory to scan
+    */
+   
+   NSTask *task=[[NSTask alloc]init];
+   [task setLaunchPath:@"/usr/local/bin/storescu"];
+   [task setArguments:
+    @[
+       @"+sd",
+       @"+sp",
+       @"*.dcm",
+       @"+rn",
+       @"-xv",
+       @"-aet",
+       aet,
+       @"-aec",
+       aec,
+       args[3],
+       args[4],
+       dirPath
+    ]
+    ];
+   //LOG_INFO(@"%@",[task arguments]);
+   
+   NSPipe* readPipe = [NSPipe pipe];
+   NSFileHandle *readingFileHandle=[readPipe fileHandleForReading];
+   [task setStandardOutput:readPipe];
+   [task setStandardError:readPipe];
+   NSData *dataPiped = nil;
+   [task launch];
+   NSMutableData *readData=[NSMutableData data];
+   while((dataPiped = [readingFileHandle availableData]) && [dataPiped length])
+   {
+       [readData appendData:dataPiped];
+   }
+   [task waitUntilExit];
+   printfLog(@"#%i  task taskReturnInt: %i",request.socket, [task terminationStatus]);
+
+#pragma mark TODO correct status
+   return [RSDataResponse responseWithData:readData contentType:@"text/plain"];
+
 
 }(request));}];
 
