@@ -37,10 +37,17 @@ int main(int argc, const char* argv[]) {
    [DICMdata appendBytes:&group2size length:4];
    [DICMdata appendBytes:&group2sizeVr length:2];
 
+   //xml file start data
+   NSData *XMLdata=[@"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" dataUsingEncoding:NSUTF8StringEncoding];
+   
+   //fileManager
    NSFileManager *fileManager=[NSFileManager defaultManager];
-   static NSISO8601DateFormatter *ISO8601;
+   
+   //timestamp
+   NSISO8601DateFormatter *ISO8601;
    ISO8601=[[NSISO8601DateFormatter alloc]init];
    ISO8601.formatOptions=NSISO8601DateFormatWithFractionalSeconds;
+   NSLog(@"%@",[ISO8601 stringFromDate:[NSDate date]]);
 
 #pragma mark -
   RS* postcstoreServer = [[RS alloc] init];

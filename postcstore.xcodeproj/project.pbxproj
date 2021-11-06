@@ -8,8 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		2A6C518A1C8DCF7C00424729 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A6C51891C8DCF7C00424729 /* libz.tbd */; };
-		4A02603925E6C4AD005AA1A3 /* NSMutableString+DSCD.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A02603525E6C4AD005AA1A3 /* NSMutableString+DSCD.m */; };
-		4A02603A25E6C4AD005AA1A3 /* NSMutableString+DSCD.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A02603625E6C4AD005AA1A3 /* NSMutableString+DSCD.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		4A0FDF201E904E5C001E3426 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A0FDF1F1E904E5C001E3426 /* main.m */; };
 		4A0FDF421E91078C001E3426 /* RSBodyEncoder.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A0FDF2C1E91078C001E3426 /* RSBodyEncoder.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		4A0FDF431E91078C001E3426 /* RSBodyEncoder.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A0FDF2D1E91078C001E3426 /* RSBodyEncoder.m */; };
@@ -41,23 +39,8 @@
 		4A19C9351E8F15B700DDD35D /* RSHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A19C9221E8F15B700DDD35D /* RSHandler.m */; };
 		4A96C55F1E843C9E002EB09E /* RFC822.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A96C55E1E843C9E002EB09E /* RFC822.m */; };
 		4A96C5611E843CBD002EB09E /* RFC822.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A96C5601E843CBD002EB09E /* RFC822.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		4ABF11DC1FE5C11C000B8DE6 /* NSString+PCS.m in Sources */ = {isa = PBXBuildFile; fileRef = 4ABF11D21FE5C11B000B8DE6 /* NSString+PCS.m */; };
-		4ABF11DD1FE5C11C000B8DE6 /* NSMutableURLRequest+PCS.m in Sources */ = {isa = PBXBuildFile; fileRef = 4ABF11D31FE5C11B000B8DE6 /* NSMutableURLRequest+PCS.m */; };
-		4ABF11DF1FE5C11C000B8DE6 /* NSString+PCS.h in Headers */ = {isa = PBXBuildFile; fileRef = 4ABF11D51FE5C11B000B8DE6 /* NSString+PCS.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		4ABF11E01FE5C11C000B8DE6 /* NSMutableURLRequest+PCS.h in Headers */ = {isa = PBXBuildFile; fileRef = 4ABF11D61FE5C11B000B8DE6 /* NSMutableURLRequest+PCS.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		4ABF11F01FE5C13B000B8DE6 /* NSMutableData+DICM.h in Headers */ = {isa = PBXBuildFile; fileRef = 4ABF11E61FE5C13A000B8DE6 /* NSMutableData+DICM.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		4ABF11F11FE5C13B000B8DE6 /* NSUUID+DICM.m in Sources */ = {isa = PBXBuildFile; fileRef = 4ABF11E71FE5C13B000B8DE6 /* NSUUID+DICM.m */; };
-		4ABF11F21FE5C13B000B8DE6 /* NSMutableData+DICM.m in Sources */ = {isa = PBXBuildFile; fileRef = 4ABF11E81FE5C13B000B8DE6 /* NSMutableData+DICM.m */; };
-		4ABF11F31FE5C13B000B8DE6 /* NSDictionary+DICM.h in Headers */ = {isa = PBXBuildFile; fileRef = 4ABF11E91FE5C13B000B8DE6 /* NSDictionary+DICM.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		4ABF11F41FE5C13B000B8DE6 /* NSDictionary+DICM.m in Sources */ = {isa = PBXBuildFile; fileRef = 4ABF11EA1FE5C13B000B8DE6 /* NSDictionary+DICM.m */; };
-		4ABF11F51FE5C13B000B8DE6 /* NSUUID+DICM.h in Headers */ = {isa = PBXBuildFile; fileRef = 4ABF11EB1FE5C13B000B8DE6 /* NSUUID+DICM.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		4ABF11F61FE5C13B000B8DE6 /* DICMTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 4ABF11EC1FE5C13B000B8DE6 /* DICMTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		4ABF11F71FE5C13B000B8DE6 /* DICMTypes.m in Sources */ = {isa = PBXBuildFile; fileRef = 4ABF11ED1FE5C13B000B8DE6 /* DICMTypes.m */; };
-		4ABF11F81FE5C13B000B8DE6 /* NSMutableDictionary+DICM.h in Headers */ = {isa = PBXBuildFile; fileRef = 4ABF11EE1FE5C13B000B8DE6 /* NSMutableDictionary+DICM.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		4ABF11F91FE5C13B000B8DE6 /* NSMutableDictionary+DICM.m in Sources */ = {isa = PBXBuildFile; fileRef = 4ABF11EF1FE5C13B000B8DE6 /* NSMutableDictionary+DICM.m */; };
-		4ABF12021FE89413000B8DE6 /* Const.h in Headers */ = {isa = PBXBuildFile; fileRef = 4ABF11FF1FE89412000B8DE6 /* Const.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		4ABF12031FE89413000B8DE6 /* Const.m in Sources */ = {isa = PBXBuildFile; fileRef = 4ABF12001FE89412000B8DE6 /* Const.m */; };
-		4ABF12041FE89413000B8DE6 /* iconv.h in Headers */ = {isa = PBXBuildFile; fileRef = 4ABF12011FE89412000B8DE6 /* iconv.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		4AD77E43273724E50099663C /* NSString+httpHeader.h in Headers */ = {isa = PBXBuildFile; fileRef = 4AD77E41273724E50099663C /* NSString+httpHeader.h */; };
+		4AD77E44273724E50099663C /* NSString+httpHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = 4AD77E42273724E50099663C /* NSString+httpHeader.m */; };
 		4AE031C527330F9B00630966 /* printfLog.h in Headers */ = {isa = PBXBuildFile; fileRef = 4AE031B32733092300630966 /* printfLog.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		4AE031C727330FA200630966 /* printfLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 4AE031AF2733088400630966 /* printfLog.m */; };
 /* End PBXBuildFile section */
@@ -78,8 +61,6 @@
 		2A31F5E21C87295A00A78C7C /* postcstore */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = postcstore; sourceTree = BUILT_PRODUCTS_DIR; };
 		2A31F5E51C87295A00A78C7C /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		2A6C51891C8DCF7C00424729 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
-		4A02603525E6C4AD005AA1A3 /* NSMutableString+DSCD.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSMutableString+DSCD.m"; sourceTree = "<group>"; };
-		4A02603625E6C4AD005AA1A3 /* NSMutableString+DSCD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSMutableString+DSCD.h"; sourceTree = "<group>"; };
 		4A0FDF1F1E904E5C001E3426 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		4A0FDF2C1E91078C001E3426 /* RSBodyEncoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RSBodyEncoder.h; sourceTree = "<group>"; };
 		4A0FDF2D1E91078C001E3426 /* RSBodyEncoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RSBodyEncoder.m; sourceTree = "<group>"; };
@@ -113,25 +94,10 @@
 		4A96C5601E843CBD002EB09E /* RFC822.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RFC822.h; path = RS/RFC822.h; sourceTree = SOURCE_ROOT; };
 		4AA28D2C1D94569400B223CA /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		4AA28D2D1D94569400B223CA /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		4ABF11D21FE5C11B000B8DE6 /* NSString+PCS.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+PCS.m"; sourceTree = "<group>"; };
-		4ABF11D31FE5C11B000B8DE6 /* NSMutableURLRequest+PCS.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSMutableURLRequest+PCS.m"; sourceTree = "<group>"; };
-		4ABF11D51FE5C11B000B8DE6 /* NSString+PCS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+PCS.h"; sourceTree = "<group>"; };
-		4ABF11D61FE5C11B000B8DE6 /* NSMutableURLRequest+PCS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSMutableURLRequest+PCS.h"; sourceTree = "<group>"; };
-		4ABF11E61FE5C13A000B8DE6 /* NSMutableData+DICM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSMutableData+DICM.h"; sourceTree = "<group>"; };
-		4ABF11E71FE5C13B000B8DE6 /* NSUUID+DICM.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSUUID+DICM.m"; sourceTree = "<group>"; };
-		4ABF11E81FE5C13B000B8DE6 /* NSMutableData+DICM.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSMutableData+DICM.m"; sourceTree = "<group>"; };
-		4ABF11E91FE5C13B000B8DE6 /* NSDictionary+DICM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+DICM.h"; sourceTree = "<group>"; };
-		4ABF11EA1FE5C13B000B8DE6 /* NSDictionary+DICM.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+DICM.m"; sourceTree = "<group>"; };
-		4ABF11EB1FE5C13B000B8DE6 /* NSUUID+DICM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSUUID+DICM.h"; sourceTree = "<group>"; };
-		4ABF11EC1FE5C13B000B8DE6 /* DICMTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DICMTypes.h; sourceTree = "<group>"; };
-		4ABF11ED1FE5C13B000B8DE6 /* DICMTypes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DICMTypes.m; sourceTree = "<group>"; };
-		4ABF11EE1FE5C13B000B8DE6 /* NSMutableDictionary+DICM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSMutableDictionary+DICM.h"; sourceTree = "<group>"; };
-		4ABF11EF1FE5C13B000B8DE6 /* NSMutableDictionary+DICM.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSMutableDictionary+DICM.m"; sourceTree = "<group>"; };
-		4ABF11FF1FE89412000B8DE6 /* Const.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Const.h; sourceTree = "<group>"; };
-		4ABF12001FE89412000B8DE6 /* Const.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Const.m; sourceTree = "<group>"; };
-		4ABF12011FE89412000B8DE6 /* iconv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iconv.h; sourceTree = "<group>"; };
 		4ACE82212735C52500C17614 /* dicom.mime */ = {isa = PBXFileReference; lastKnownFileType = file; path = dicom.mime; sourceTree = "<group>"; };
 		4ACE82222735C55000C17614 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		4AD77E41273724E50099663C /* NSString+httpHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+httpHeader.h"; sourceTree = "<group>"; };
+		4AD77E42273724E50099663C /* NSString+httpHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+httpHeader.m"; sourceTree = "<group>"; };
 		4AE031AF2733088400630966 /* printfLog.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = printfLog.m; sourceTree = "<group>"; };
 		4AE031B32733092300630966 /* printfLog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = printfLog.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -155,9 +121,6 @@
 				4AE031B32733092300630966 /* printfLog.h */,
 				4AE031AF2733088400630966 /* printfLog.m */,
 				4A0FDF1F1E904E5C001E3426 /* main.m */,
-				4A02603325E6C4AD005AA1A3 /* DSCD */,
-				4ABF11C41FE5BD5A000B8DE6 /* PCS */,
-				4ABF11C31FE5BD14000B8DE6 /* DICM */,
 				4A19C9171E8F15B700DDD35D /* RS */,
 				4AA28D2C1D94569400B223CA /* LICENSE */,
 				4AA28D2D1D94569400B223CA /* README.md */,
@@ -181,15 +144,6 @@
 				2A31F5E51C87295A00A78C7C /* Foundation.framework */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		4A02603325E6C4AD005AA1A3 /* DSCD */ = {
-			isa = PBXGroup;
-			children = (
-				4A02603625E6C4AD005AA1A3 /* NSMutableString+DSCD.h */,
-				4A02603525E6C4AD005AA1A3 /* NSMutableString+DSCD.m */,
-			);
-			path = DSCD;
 			sourceTree = "<group>";
 		};
 		4A0FDF2B1E91078C001E3426 /* Response */ = {
@@ -239,6 +193,8 @@
 		4A19C9171E8F15B700DDD35D /* RS */ = {
 			isa = PBXGroup;
 			children = (
+				4AD77E41273724E50099663C /* NSString+httpHeader.h */,
+				4AD77E42273724E50099663C /* NSString+httpHeader.m */,
 				4A0FDF571E9109EB001E3426 /* Request */,
 				4A0FDF2B1E91078C001E3426 /* Response */,
 				4A0FDF3C1E91078C001E3426 /* RS.h */,
@@ -251,37 +207,6 @@
 				4A96C5601E843CBD002EB09E /* RFC822.h */,
 			);
 			path = RS;
-			sourceTree = "<group>";
-		};
-		4ABF11C31FE5BD14000B8DE6 /* DICM */ = {
-			isa = PBXGroup;
-			children = (
-				4ABF11FF1FE89412000B8DE6 /* Const.h */,
-				4ABF12001FE89412000B8DE6 /* Const.m */,
-				4ABF12011FE89412000B8DE6 /* iconv.h */,
-				4ABF11EC1FE5C13B000B8DE6 /* DICMTypes.h */,
-				4ABF11ED1FE5C13B000B8DE6 /* DICMTypes.m */,
-				4ABF11E91FE5C13B000B8DE6 /* NSDictionary+DICM.h */,
-				4ABF11EA1FE5C13B000B8DE6 /* NSDictionary+DICM.m */,
-				4ABF11E61FE5C13A000B8DE6 /* NSMutableData+DICM.h */,
-				4ABF11E81FE5C13B000B8DE6 /* NSMutableData+DICM.m */,
-				4ABF11EE1FE5C13B000B8DE6 /* NSMutableDictionary+DICM.h */,
-				4ABF11EF1FE5C13B000B8DE6 /* NSMutableDictionary+DICM.m */,
-				4ABF11EB1FE5C13B000B8DE6 /* NSUUID+DICM.h */,
-				4ABF11E71FE5C13B000B8DE6 /* NSUUID+DICM.m */,
-			);
-			path = DICM;
-			sourceTree = "<group>";
-		};
-		4ABF11C41FE5BD5A000B8DE6 /* PCS */ = {
-			isa = PBXGroup;
-			children = (
-				4ABF11D61FE5C11B000B8DE6 /* NSMutableURLRequest+PCS.h */,
-				4ABF11D31FE5C11B000B8DE6 /* NSMutableURLRequest+PCS.m */,
-				4ABF11D51FE5C11B000B8DE6 /* NSString+PCS.h */,
-				4ABF11D21FE5C11B000B8DE6 /* NSString+PCS.m */,
-			);
-			path = PCS;
 			sourceTree = "<group>";
 		};
 		4ACE821F2735C4C000C17614 /* test */ = {
@@ -318,31 +243,22 @@
 			files = (
 				4AE031C527330F9B00630966 /* printfLog.h in Headers */,
 				4A0FDF641E910C1D001E3426 /* RSGZipDecoder.h in Headers */,
-				4ABF11F01FE5C13B000B8DE6 /* NSMutableData+DICM.h in Headers */,
 				4A0FDF451E91078C001E3426 /* RSGZipEncoder.h in Headers */,
 				4A0FDF471E91078C001E3426 /* RSResponse.h in Headers */,
-				4ABF11F81FE5C13B000B8DE6 /* NSMutableDictionary+DICM.h in Headers */,
 				4A0FDF491E91078C001E3426 /* RSDataResponse.h in Headers */,
-				4ABF12021FE89413000B8DE6 /* Const.h in Headers */,
+				4AD77E43273724E50099663C /* NSString+httpHeader.h in Headers */,
 				4A19C9341E8F15B700DDD35D /* RSHandler.h in Headers */,
-				4ABF11E01FE5C11C000B8DE6 /* NSMutableURLRequest+PCS.h in Headers */,
-				4ABF11DF1FE5C11C000B8DE6 /* NSString+PCS.h in Headers */,
 				4A96C5611E843CBD002EB09E /* RFC822.h in Headers */,
 				4A0FDF4F1E91078C001E3426 /* RSStreamedResponse.h in Headers */,
-				4ABF11F61FE5C13B000B8DE6 /* DICMTypes.h in Headers */,
 				4A0FDF421E91078C001E3426 /* RSBodyEncoder.h in Headers */,
 				4A0FDF4D1E91078C001E3426 /* RSFileResponse.h in Headers */,
-				4ABF11F51FE5C13B000B8DE6 /* NSUUID+DICM.h in Headers */,
 				4A0FDF511E91078C001E3426 /* RS.h in Headers */,
 				4A0FDF531E91078C001E3426 /* RSConnection.h in Headers */,
 				4A0FDF621E910C1D001E3426 /* RSBodyDecoder.h in Headers */,
 				4A0FDF441E91078C001E3426 /* RSBodyReaderProtocol.h in Headers */,
 				4A0FDF5C1E9109EB001E3426 /* RSRequest.h in Headers */,
 				4A0FDF5B1E9109EB001E3426 /* RSBodyWriterProtocol.h in Headers */,
-				4A02603A25E6C4AD005AA1A3 /* NSMutableString+DSCD.h in Headers */,
-				4ABF11F31FE5C13B000B8DE6 /* NSDictionary+DICM.h in Headers */,
 				4A0FDF4B1E91078C001E3426 /* RSErrorResponse.h in Headers */,
-				4ABF12041FE89413000B8DE6 /* iconv.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -401,28 +317,20 @@
 				4AE031C727330FA200630966 /* printfLog.m in Sources */,
 				4A0FDF461E91078C001E3426 /* RSGZipEncoder.m in Sources */,
 				4A19C9351E8F15B700DDD35D /* RSHandler.m in Sources */,
-				4ABF11DC1FE5C11C000B8DE6 /* NSString+PCS.m in Sources */,
 				4A0FDF4C1E91078C001E3426 /* RSErrorResponse.m in Sources */,
 				4A0FDF4A1E91078C001E3426 /* RSDataResponse.m in Sources */,
 				4A0FDF4E1E91078C001E3426 /* RSFileResponse.m in Sources */,
-				4ABF11F71FE5C13B000B8DE6 /* DICMTypes.m in Sources */,
-				4ABF11DD1FE5C11C000B8DE6 /* NSMutableURLRequest+PCS.m in Sources */,
 				4A0FDF651E910C1D001E3426 /* RSGZipDecoder.m in Sources */,
-				4ABF12031FE89413000B8DE6 /* Const.m in Sources */,
 				4A0FDF521E91078C001E3426 /* RS.m in Sources */,
-				4A02603925E6C4AD005AA1A3 /* NSMutableString+DSCD.m in Sources */,
 				4A0FDF501E91078C001E3426 /* RSStreamedResponse.m in Sources */,
 				4A0FDF481E91078C001E3426 /* RSResponse.m in Sources */,
 				4A0FDF201E904E5C001E3426 /* main.m in Sources */,
 				4A0FDF5D1E9109EB001E3426 /* RSRequest.m in Sources */,
 				4A0FDF631E910C1D001E3426 /* RSBodyDecoder.m in Sources */,
 				4A0FDF431E91078C001E3426 /* RSBodyEncoder.m in Sources */,
+				4AD77E44273724E50099663C /* NSString+httpHeader.m in Sources */,
 				4A96C55F1E843C9E002EB09E /* RFC822.m in Sources */,
-				4ABF11F41FE5C13B000B8DE6 /* NSDictionary+DICM.m in Sources */,
 				4A0FDF541E91078C001E3426 /* RSConnection.m in Sources */,
-				4ABF11F91FE5C13B000B8DE6 /* NSMutableDictionary+DICM.m in Sources */,
-				4ABF11F21FE5C13B000B8DE6 /* NSMutableData+DICM.m in Sources */,
-				4ABF11F11FE5C13B000B8DE6 /* NSUUID+DICM.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

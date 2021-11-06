@@ -1,7 +1,7 @@
 #import "RSRequest.h"
 #import "RSGZipDecoder.h"
 #import "RFC822.h"
-#import "NSString+PCS.h"
+#import "NSString+httpHeader.h"
 #import "printfLog.h"
 
 NSString* GCDWebServerUnescapeURLString(NSString* string) {

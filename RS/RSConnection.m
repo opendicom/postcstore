@@ -2,7 +2,7 @@
 
 #import <netdb.h>
 #import "RFC822.h"
-#import "NSString+PCS.h"
+#import "NSString+httpHeader.h"
 #import "printfLog.h"
 
 #define kHeadersReadCapacity (1 * 1024)
