@@ -150,12 +150,12 @@ body (repetible)
 
 ```xml
 \r\n--myBoundary--\r\n
-Content-Type: application/dicom+xml\r\n\r\n
-transfer-syntax=1.2.840.10008.1.2.1\r\n\r\n
+Content-Type: application/dicom+xml; transfer-syntax=1.2.840.10008.1.2.1
+\r\n\r\n
 <NativeDicomModel>
-\r\n\r\n--myboundary
-\r\nContent-Type: text/XML
-\r\nContent-Location: bulk
+\r\n\r\n--myboundary\r\n
+Content-Type: text/XML\r\n
+Content-Location: bulk
 \r\n\r\n
 <xml>
 ```

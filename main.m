@@ -28,18 +28,22 @@ int main(int argc, const char* argv[]) {
   if (httpPort < 1 || httpPort > 65535) return 1;
   //[2] dest
 
+#pragma mark static data
+   
    //static dicom file start data
    uint32 DICM=0x4D434944;
    uint32 group2size=0x02;
    uint16 group2sizeVr=0x4C55;
-   NSMutableData *DICMdata=[NSMutableData dataWithLength:128];
-   [DICMdata appendBytes:&DICM length:4];
-   [DICMdata appendBytes:&group2size length:4];
-   [DICMdata appendBytes:&group2sizeVr length:2];
+   NSMutableData *DICMPrefix=[NSMutableData dataWithLength:128];
+   [DICMPrefix appendBytes:&DICM length:4];
+   [DICMPrefix appendBytes:&group2size length:4];
+   [DICMPrefix appendBytes:&group2sizeVr length:2];
 
-   //xml file start data
-   NSData *XMLdata=[@"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" dataUsingEncoding:NSUTF8StringEncoding];
-   
+   NSString *XMLPrefix=@"<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+   NSData *bulkPlaceholder=[@"<BulkData uri=\"bulk\"/>" dataUsingEncoding:NSUTF8StringEncoding];
+   NSData *contentLocation=[@"Content-Location:" dataUsingEncoding:NSUTF8StringEncoding];
+   NSData *rnrn=[@"Content-Location:" dataUsingEncoding:NSUTF8StringEncoding];
+
    //fileManager
    NSFileManager *fileManager=[NSFileManager defaultManager];
    
@@ -47,7 +51,6 @@ int main(int argc, const char* argv[]) {
    NSISO8601DateFormatter *ISO8601;
    ISO8601=[[NSISO8601DateFormatter alloc]init];
    ISO8601.formatOptions=NSISO8601DateFormatWithFractionalSeconds;
-   NSLog(@"%@",[ISO8601 stringFromDate:[NSDate date]]);
 
 #pragma mark -
   RS* postcstoreServer = [[RS alloc] init];
@@ -140,15 +143,19 @@ int main(int argc, const char* argv[]) {
 
    //extract dicom from body
    unsigned long bodyLength=request.data.length;
-   unsigned long bodyOffsetMax=bodyLength-1000;
+   unsigned long bodyOffsetMax=bodyLength-37;//arbitrarily size of xml prefix (that is .... if there is no space not even for an xml prefix... no reason to parse more data)
    int counter=0;
-   NSString *dirPath=[[args[2] stringByAppendingPathComponent:boundary] stringByAppendingPathComponent:[ISO8601 stringFromDate:[NSDate date]]];
+   NSArray *ISO8601datetime=[[ISO8601 stringFromDate:[NSDate date]]componentsSeparatedByString:@" "];
+   NSString *ISO8601timestamp=[ISO8601datetime componentsJoinedByString:@"T"];
+   
+   NSString *dirPath=[[args[2] stringByAppendingPathComponent:boundary] stringByAppendingPathComponent:ISO8601timestamp];
    printfLog(@"#%i  dirPath:%@",request.socket, dirPath);
    NSError *error;
-   NSRange boundaryRange=NSMakeRange(0,0);
-
    NSRange bodyRange=NSMakeRange(0,bodyLength);
-
+   NSRange boundaryRange=[request.data rangeOfData:boundaryData options:0 range:bodyRange];
+   //skip first boundary
+   bodyRange.location=boundaryRange.location + boundaryRange.length + 4; // --\r\n
+   bodyRange.length=bodyRange.length - bodyRange.location;
    
 #pragma mark · cases implemented
    
@@ -168,16 +175,18 @@ int main(int argc, const char* argv[]) {
 #pragma mark ·· application/dicom
          
          /*
-          cada parte está delimitada por :
-          - principio: preámbulo de 128 ceros y letras DICM
-          - fin: boundary del item siguiente o último boundary
+          each part is supposed to be a complete dicom file.
+          we do not check the header of each part.
+          
+          - parte start: 128 zeros + DICM
+          - parte end: boundary
           */
          NSRange DICMRange=NSMakeRange(0,0);
 
          while (bodyRange.location < bodyOffsetMax)
          {
             //find next DICM
-             DICMRange=[request.data rangeOfData:DICMdata options:0 range:bodyRange];
+             DICMRange=[request.data rangeOfData:DICMPrefix options:0 range:bodyRange];
             
              if (DICMRange.location==NSNotFound)
              {
@@ -220,18 +229,28 @@ int main(int argc, const char* argv[]) {
 #pragma mark ·· application/dicom+xml
 
          /*
-          cada parte está delimitada por :
-          - principio: preámbulo de un documento xml
-          - fin: boundary del item siguiente o último boundary
+          the enclosed part is also an xml
+          
+          But we want to check that and check also which part is related to which base part.
+          This is the generic case, which requires we know the part type and part uri when there is one
+          
+          - content start: after \r\n\r\n
+          - content end: boundary
+          - header is in plain text
           */
-         NSRange DICMRange=NSMakeRange(0,0);
+         NSRange headRange=NSMakeRange(0,0);
+         NSRange rnrnRange=NSMakeRange(0,0);
+         NSRange contentRange=NSMakeRange(0,0);
+         NSMutableArray *partsType=[NSMutableArray array];
+         NSMutableArray *partsContent=[NSMutableArray array];
+         NSMutableArray *partsUri=[NSMutableArray array];
 
          while (bodyRange.location < bodyOffsetMax)
          {
-            //find next DICM
-             DICMRange=[request.data rangeOfData:DICMdata options:0 range:bodyRange];
+            //find next xml
+             rnrnRange=[request.data rangeOfData:rnrn options:0 range:bodyRange];
             
-             if (DICMRange.location==NSNotFound)
+             if (rnrnRange.location==NSNotFound)
              {
                 if (counter==0) return [RSResponse responseWithStatusCode:kRSHTTPStatusCode_NoContent];
                 bodyRange.location=bodyLength;
@@ -244,26 +263,118 @@ int main(int argc, const char* argv[]) {
                   if (error) return [RSErrorResponse responseWithServerError:kRSHTTPStatusCode_InsufficientStorage message:@"intermediate storage not available"];
                }
                counter++;
- 
-                //new bodyRange
-               bodyRange.location=DICMRange.location + DICMRange.length;
+                
+               //parse headRange
+               headRange.location=bodyRange.location;
+               headRange.length=rnrnRange.location - headRange.location;
+               NSString *headString=[[NSString alloc]initWithData: [request.data subdataWithRange:headRange] encoding:NSASCIIStringEncoding];
+               NSArray *headStrings=[headString componentsSeparatedByString:@"\r\n"];
+               for (NSString *headKeyValueString in headStrings)
+               {
+                  NSString *spaceTrimmed=[headKeyValueString stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
+                  NSArray *headKeyValueArray=[spaceTrimmed componentsSeparatedByString:@":"];
+                  if (headKeyValueArray.count != 2)
+                     return [RSErrorResponse responseWithClientError:404 message:@"bad part head <pre>%@</pre>",headString];
+                  NSString *key=[headKeyValueArray[0] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
+                  NSString *value=[headKeyValueArray[1] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
+                  if ([key isEqualToString:@"Content-Type"]) [partsType addObject:value];
+                  if ([key isEqualToString:@"Content-Location"]) [partsUri addObject:value];
+                  else [partsUri addObject:@""];
+               }
+
+               //new bodyRange
+               bodyRange.location=rnrnRange.location + rnrnRange.length;
                bodyRange.length=bodyLength - bodyRange.location;
             
-               //find next boundary
+               //find content delimited by next boundary
                boundaryRange=[request.data rangeOfData:boundaryData options:0 range:bodyRange];
                if (boundaryRange.location==NSNotFound)
                   return [RSResponse responseWithStatusCode:kRSHTTPStatusCode_BadRequest];
-               
+                
+               contentRange.location=bodyRange.location;
+               contentRange.length=boundaryRange.location - contentRange.location - 2;//there are not one but two \r\n before --boundary
+               [partsContent addObject:[request.data subdataWithRange:contentRange]];
+
                //new bodyRange
                bodyRange.location=boundaryRange.location + boundaryRange.length;
                bodyRange.length=bodyLength - bodyRange.location;
-
-               //save dicom file
-               NSRange fileRange=NSMakeRange(DICMRange.location, boundaryRange.location - DICMRange.location);
-               NSString *filePath=[dirPath stringByAppendingFormat:@"/%i.dcm",counter];
-               [[request.data subdataWithRange:fileRange]writeToFile:filePath atomically:NO];
             }
          }
+         
+         for (int index = 0; index < counter; index++)
+         {
+            if ([partsType[index] hasPrefix:@"application/dicom+xml"])
+            {
+               //specialization with dicom+xml, might be generalized
+               NSMutableString *XMLString=[[NSMutableString alloc] initWithData:partsContent[index] encoding:NSUTF8StringEncoding];
+               if (!XMLString) return [RSErrorResponse responseWithClientError:404 message:@"bad XML encoding"];
+               if (![XMLString hasPrefix:XMLPrefix]) return [RSErrorResponse responseWithClientError:404 message:@"XML with no prefix"];
+               
+               //find bulkdata reference(s)
+               NSRange XMLStringRange=NSMakeRange(0, XMLString.length);
+               while (1)
+               {
+                  NSRange bulkRange=[XMLString rangeOfString:@"<BulkData uri=\"" options:0 range:XMLStringRange];
+                  if (bulkRange.location==NSNotFound) break;
+                  NSRange uriRange=NSMakeRange(bulkRange.location + bulkRange.length,0);
+                  NSRange nextDoubleQuote=[XMLString rangeOfString:@"\"" options:0 range:NSMakeRange(uriRange.location, XMLString.length - uriRange.location)];
+                  uriRange.length=nextDoubleQuote.location - uriRange.location;
+                  NSString *uri=[XMLString substringWithRange:uriRange];
+                  NSUInteger bulkdataIndex=[partsUri indexOfObject:uri];
+                  if (bulkdataIndex==NSNotFound)
+                     [RSErrorResponse responseWithClientError:404 message:@"XML bulkdata %@ not found",uri];
+                  bulkRange.length=nextDoubleQuote.location + 2 - bulkRange.location;
+                  [XMLString deleteCharactersInRange:bulkRange];
+                  //insert base64 representation of XMLData[1] into XMLData[0]
+                  NSString *base64enclosure=[NSString stringWithFormat:@"<InlineBinary>%@</InlineBinary>", [partsContent[index] base64EncodedStringWithOptions:0]];
+                  [XMLString insertString:base64enclosure atIndex:bulkRange.location];
+                  XMLStringRange.location=bulkRange.location + base64enclosure.length;
+                  XMLStringRange.length=XMLString.length - XMLStringRange.location;
+               }
+               NSString *filePath=[dirPath stringByAppendingFormat:@"/%i.dcm",index];
+               NSMutableData *logData=[NSMutableData data];
+               
+               //convert XMLString to DICMData
+               NSTask *XMLDCMtask=[[NSTask alloc]init];
+               [XMLDCMtask setLaunchPath:@"/Applications/dcm4che-5.23.2/bin/xml2dcm"];
+               [XMLDCMtask setArguments:
+                @[
+                   @"-x",
+                   @"-",
+                   @"-o",
+                   filePath
+                ]
+                ];
+               //LOG_INFO(@"%@",[task arguments]);
+               NSPipe *writePipe = [NSPipe pipe];
+               NSFileHandle *writeHandle = [writePipe fileHandleForWriting];
+               [XMLDCMtask setStandardInput:writePipe];
+               
+               NSPipe* readPipe = [NSPipe pipe];
+               NSFileHandle *readingFileHandle=[readPipe fileHandleForReading];
+               [XMLDCMtask setStandardOutput:readPipe];
+               [XMLDCMtask setStandardError:readPipe];
+               
+               [XMLDCMtask launch];
+               [writeHandle writeData:[XMLString dataUsingEncoding:NSUTF8StringEncoding]];
+               [writeHandle closeFile];
+               
+               NSData *dataPiped = nil;
+               while((dataPiped = [readingFileHandle availableData]) && [dataPiped length])
+               {
+                   [logData appendData:dataPiped];
+               }
+               //while( [task isRunning]) [NSThread sleepForTimeInterval: 0.1];
+               //[task waitUntilExit];      // <- This is VERY DANGEROUS : the main runloop is continuing...
+               //[aTask interrupt];
+               
+               [XMLDCMtask waitUntilExit];
+               if ([XMLDCMtask terminationStatus]!=0)
+                  NSLog(@"%@",[[NSString alloc] initWithData:logData encoding:NSUTF8StringEncoding]);
+            }
+         }
+         
+         
 
       }
          break;
@@ -280,6 +391,7 @@ int main(int argc, const char* argv[]) {
     /usr/local/bin/storescu +sd +sp *.dcm +rn -xv -aet STORESCU -aec DCM4CHEE localhost 11112 /Users/Shared/myboundary
     
     @"+sd",   //scan directory one level
+    @"+r",    //recurse
     @"+sp",   //scan pattern
     @"*.dcm", //files ending with .dcm
     @"+rn",   //rename with .done or .bad (ignore these files on the next execution)
@@ -298,6 +410,7 @@ int main(int argc, const char* argv[]) {
    [task setArguments:
     @[
        @"+sd",
+       @"+r",
        @"+sp",
        @"*.dcm",
        @"+rn",
