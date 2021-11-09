@@ -76,7 +76,55 @@ ninguno
 
 ## payload
 
-el o los recursos enviados en el  body del POST
+luego de las lineas del header teminadas por **CRLF** ( =\r\n, =0x0D0A)
+
+sigue un **CRLF** (linea vacía)
+
+y finalmente el payload con el o los recursos enviados en el  body del POST
+
+
+
+#### payload multipart
+
+http://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_8.6.1.2
+
+https://datatracker.ietf.org/doc/html/rfc2387
+
+
+
+**CRLF** ( ="\r\n"  =0x0D0A)
+
+**DASH** (="--")
+
+```
+multipart-payload = 1*(DASH boundary CRLF part CRLF) DASH boundary DASH
+```
+
+**boundary**  
+
+puede contener hasta 70 caracteres
+
+El último no puede ser un espacio
+
+Caracteres autorizados : DIGIT ALPHA ' ( ) + _  , - . / : 0 ?
+
+**part**
+
+```
+Content-Type: media-type CRLF
+Content-Location: url CRLF
+(Content-Length: uint CRLF / Content-Encoding: encoding CRLF)
+[Content-Description: text CRLF]
+*(header-field CRLF)
+CRLF
+part-payload
+```
+
+part-payload
+
+```
+*OCTET
+```
 
 
 
@@ -115,15 +163,17 @@ Content-Type: multipart/related;type=application/dicom; boundary=myBoundary
 body (repetible)
 
 ```xml
-\r\n--myBoundary--\r\n
-Content-Type: application/dicom\r\n\r\n
+\r\n
+--myBoundary\r\n
+Content-Type: application/dicom\r\n
+\r\n
 <DICM>
 ```
 
 tail
 
 ```
-\r\n--myBoundary--\r\n
+\r\n--myBoundary--
 ```
 
 
@@ -146,17 +196,21 @@ header
 Content-Type: multipart/related; type=application/dicom+xml; boundary=myBoundary
 ```
 
-body (repetible)
+body with one dicom+xml and one enclosed xml (repetible)
 
 ```xml
-\r\n--myBoundary--\r\n
-Content-Type: application/dicom+xml; transfer-syntax=1.2.840.10008.1.2.1
-\r\n\r\n
+\r\n
+--myBoundary\r\n
+Content-Type: application/dicom+xml; transfer-syntax=1.2.840.10008.1.2.1\r\n
+\r\n
 <NativeDicomModel>
-\r\n\r\n--myboundary\r\n
+  
+  
+\r\n
+--myboundary\r\n
 Content-Type: text/XML\r\n
-Content-Location: bulk
-\r\n\r\n
+Content-Location: bulk\r\n
+\r\n
 <xml>
 ```
 

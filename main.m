@@ -40,10 +40,9 @@ int main(int argc, const char* argv[]) {
    [DICMPrefix appendBytes:&group2sizeVr length:2];
 
    NSString *XMLPrefix=@"<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-   NSData *bulkPlaceholder=[@"<BulkData uri=\"bulk\"/>" dataUsingEncoding:NSUTF8StringEncoding];
-   NSData *contentLocation=[@"Content-Location:" dataUsingEncoding:NSUTF8StringEncoding];
-   NSData *rnrn=[@"Content-Location:" dataUsingEncoding:NSUTF8StringEncoding];
 
+   NSData *rnrn=[@"\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding];
+   uint8 space=' ';
    //fileManager
    NSFileManager *fileManager=[NSFileManager defaultManager];
    
@@ -154,7 +153,7 @@ int main(int argc, const char* argv[]) {
    NSRange bodyRange=NSMakeRange(0,bodyLength);
    NSRange boundaryRange=[request.data rangeOfData:boundaryData options:0 range:bodyRange];
    //skip first boundary
-   bodyRange.location=boundaryRange.location + boundaryRange.length + 4; // --\r\n
+   bodyRange.location=boundaryRange.location + boundaryRange.length + 2; // --\r\n
    bodyRange.length=bodyRange.length - bodyRange.location;
    
 #pragma mark · cases implemented
@@ -265,21 +264,25 @@ int main(int argc, const char* argv[]) {
                counter++;
                 
                //parse headRange
+               NSString *ct=nil;
+               NSString *cl=nil;
                headRange.location=bodyRange.location;
                headRange.length=rnrnRange.location - headRange.location;
                NSString *headString=[[NSString alloc]initWithData: [request.data subdataWithRange:headRange] encoding:NSASCIIStringEncoding];
                NSArray *headStrings=[headString componentsSeparatedByString:@"\r\n"];
                for (NSString *headKeyValueString in headStrings)
                {
-                  NSString *spaceTrimmed=[headKeyValueString stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
-                  NSArray *headKeyValueArray=[spaceTrimmed componentsSeparatedByString:@":"];
-                  if (headKeyValueArray.count != 2)
-                     return [RSErrorResponse responseWithClientError:404 message:@"bad part head <pre>%@</pre>",headString];
-                  NSString *key=[headKeyValueArray[0] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
-                  NSString *value=[headKeyValueArray[1] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
-                  if ([key isEqualToString:@"Content-Type"]) [partsType addObject:value];
-                  if ([key isEqualToString:@"Content-Location"]) [partsUri addObject:value];
-                  else [partsUri addObject:@""];
+                  if (headKeyValueString.length)
+                  {
+                     NSString *spaceTrimmed=[headKeyValueString stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
+                     NSArray *headKeyValueArray=[spaceTrimmed componentsSeparatedByString:@":"];
+                     if (headKeyValueArray.count != 2)
+                        return [RSErrorResponse responseWithClientError:404 message:@"bad part head <pre>%@</pre>",headString];
+                     NSString *key=[headKeyValueArray[0] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
+                     NSString *value=[headKeyValueArray[1] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
+                     if ([key isEqualToString:@"Content-Type"])     ct=value;
+                     if ([key isEqualToString:@"Content-Location"]) cl=value;
+                  }
                }
 
                //new bodyRange
@@ -292,9 +295,16 @@ int main(int argc, const char* argv[]) {
                   return [RSResponse responseWithStatusCode:kRSHTTPStatusCode_BadRequest];
                 
                contentRange.location=bodyRange.location;
-               contentRange.length=boundaryRange.location - contentRange.location - 2;//there are not one but two \r\n before --boundary
-               [partsContent addObject:[request.data subdataWithRange:contentRange]];
-
+                contentRange.length=boundaryRange.location - contentRange.location;
+                
+               if (ct)
+               {
+                  [partsType addObject:ct];
+                  [partsContent addObject:[request.data subdataWithRange:contentRange]];
+                  if (cl) [partsUri addObject:cl];
+                  else [partsUri addObject:@""];
+               }
+                
                //new bodyRange
                bodyRange.location=boundaryRange.location + boundaryRange.length;
                bodyRange.length=bodyLength - bodyRange.location;
@@ -316,17 +326,28 @@ int main(int argc, const char* argv[]) {
                {
                   NSRange bulkRange=[XMLString rangeOfString:@"<BulkData uri=\"" options:0 range:XMLStringRange];
                   if (bulkRange.location==NSNotFound) break;
+                  
                   NSRange uriRange=NSMakeRange(bulkRange.location + bulkRange.length,0);
                   NSRange nextDoubleQuote=[XMLString rangeOfString:@"\"" options:0 range:NSMakeRange(uriRange.location, XMLString.length - uriRange.location)];
                   uriRange.length=nextDoubleQuote.location - uriRange.location;
                   NSString *uri=[XMLString substringWithRange:uriRange];
+                  
                   NSUInteger bulkdataIndex=[partsUri indexOfObject:uri];
                   if (bulkdataIndex==NSNotFound)
                      [RSErrorResponse responseWithClientError:404 message:@"XML bulkdata %@ not found",uri];
-                  bulkRange.length=nextDoubleQuote.location + 2 - bulkRange.location;
+                  
+                  NSRange nextLesser=[XMLString rangeOfString:@"<" options:0 range:NSMakeRange(uriRange.location, XMLString.length - uriRange.location)];
+                  bulkRange.length=nextLesser.location - bulkRange.location;
                   [XMLString deleteCharactersInRange:bulkRange];
                   //insert base64 representation of XMLData[1] into XMLData[0]
-                  NSString *base64enclosure=[NSString stringWithFormat:@"<InlineBinary>%@</InlineBinary>", [partsContent[index] base64EncodedStringWithOptions:0]];
+                  NSString *base64enclosure=nil;
+                  if ([partsContent[index] length] % 2)
+                  {
+                     NSMutableData *spacepadded=[NSMutableData dataWithData:partsContent[index]];
+                     [spacepadded appendBytes:&space length:1];
+                     base64enclosure=[NSString stringWithFormat:@"<InlineBinary>%@</InlineBinary>", [spacepadded base64EncodedStringWithOptions:0]];
+                  }
+                  else base64enclosure=[NSString stringWithFormat:@"<InlineBinary>%@</InlineBinary>", [partsContent[index] base64EncodedStringWithOptions:0]];
                   [XMLString insertString:base64enclosure atIndex:bulkRange.location];
                   XMLStringRange.location=bulkRange.location + base64enclosure.length;
                   XMLStringRange.length=XMLString.length - XMLStringRange.location;
