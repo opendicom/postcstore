@@ -147,8 +147,8 @@ int main(int argc, const char* argv[]) {
    NSArray *ISO8601datetime=[[ISO8601 stringFromDate:[NSDate date]]componentsSeparatedByString:@" "];
    NSString *ISO8601timestamp=[ISO8601datetime componentsJoinedByString:@"T"];
    
-   NSString *dirPath=[[args[2] stringByAppendingPathComponent:boundary] stringByAppendingPathComponent:ISO8601timestamp];
-   printfLog(@"#%i  dirPath:%@",request.socket, dirPath);
+   NSMutableString *dirPath=[NSMutableString stringWithFormat:@"%@/%@/%@",[args[2] stringByExpandingTildeInPath],boundary,ISO8601timestamp];
+   
    NSError *error;
    NSRange bodyRange=NSMakeRange(0,bodyLength);
    NSRange boundaryRange=[request.data rangeOfData:boundaryData options:0 range:bodyRange];
@@ -198,6 +198,7 @@ int main(int argc, const char* argv[]) {
                {
                   [fileManager createDirectoryAtPath:dirPath withIntermediateDirectories:YES attributes:nil error:&error];
                   if (error) return [RSErrorResponse responseWithServerError:kRSHTTPStatusCode_InsufficientStorage message:@"intermediate storage not available"];
+                  printfLog(@"#%i  dirPath:%@",request.socket, dirPath);
                }
                counter++;
  
@@ -260,6 +261,7 @@ int main(int argc, const char* argv[]) {
                {
                   [fileManager createDirectoryAtPath:dirPath withIntermediateDirectories:YES attributes:nil error:&error];
                   if (error) return [RSErrorResponse responseWithServerError:kRSHTTPStatusCode_InsufficientStorage message:@"intermediate storage not available"];
+                  printfLog(@"#%i  dirPath:%@",request.socket, dirPath);
                }
                counter++;
                 
@@ -416,7 +418,8 @@ int main(int argc, const char* argv[]) {
     @"+sp",   //scan pattern
     @"*.dcm", //files ending with .dcm
     @"+rn",   //rename with .done or .bad (ignore these files on the next execution)
-    @"-xv",   //prefer jpeg 2000
+    @"-R"     //only required
+    @"-xv",   //propose JPEG 2000 lossless TS and all uncompressed transfer syntaxes
     @"-aet",  //local aet
     aet,      //=first segment of path
     @"-aec",  //aet of called pacs
@@ -430,11 +433,14 @@ int main(int argc, const char* argv[]) {
    [task setLaunchPath:@"/usr/local/bin/storescu"];
    [task setArguments:
     @[
+       @"-ll",
+       @"debug",
        @"+sd",
        @"+r",
        @"+sp",
        @"*.dcm",
        @"+rn",
+       @"-R",
        @"-xv",
        @"-aet",
        aet,
