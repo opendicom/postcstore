@@ -217,7 +217,7 @@ Content-Location: bulk\r\n
 tail
 
 ```
-\r\n--myBoundary--\r\n
+\r\n--myBoundary--
 ```
 
 # Ejemplo python de cliente dicom+xml
